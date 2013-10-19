@@ -102,9 +102,7 @@ class BanksGeo
 			if @data.length > 500
 				@processBigData()
 			else
-#				for point in @data
 					@appendItemsToCollection(@data)
-#					@appendToCollection(@buildGeoObject(point))
 
 	#@method: processBigData
 	#Process big points data
