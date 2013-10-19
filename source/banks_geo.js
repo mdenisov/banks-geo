@@ -101,7 +101,7 @@ BanksGeo = (function() {
   };
 
   BanksGeo.prototype.processData = function() {
-    if ((this.data != null) && this.data.length > 1) {
+    if ((this.data != null) && this.data.length > 0) {
       if (this.data.length > 500) {
         return this.processBigData();
       } else {
