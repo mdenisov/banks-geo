@@ -48,6 +48,11 @@ BanksGeo = (function() {
         this.data = options.data;
       }
     }
+    if (options.url != null) {
+      if (typeof options.url === 'string') {
+        this.url = options.url;
+      }
+    }
     ymaps.ready(this.init);
   }
 
@@ -65,6 +70,7 @@ BanksGeo = (function() {
     }
     this.buildGeoCollection();
     this.processData();
+    this.loadData();
     return this.addToMap(this.collection);
   };
 
@@ -78,21 +84,96 @@ BanksGeo = (function() {
     }
   };
 
-  BanksGeo.prototype.processData = function() {
-    var point, _i, _len, _ref, _results;
-    if (this.data.length > 1) {
-      _ref = this.data;
-      _results = [];
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        point = _ref[_i];
-        _results.push(this.appendToCollection(this.buildGeoObject(point)));
-      }
-      return _results;
+  BanksGeo.prototype.loadData = function() {
+    var _this = this;
+    if (this.url != null) {
+      return $.ajax(this.url, {
+        dataType: 'json',
+        error: function(jqXHR, textStatus, errorThrown) {
+          return _this.log("AJAX Error: " + textStatus);
+        },
+        success: function(data, textStatus, jqXHR) {
+          _this.data = data;
+          return _this.processData();
+        }
+      });
     }
   };
 
+  BanksGeo.prototype.processData = function() {
+    if ((this.data != null) && this.data.length > 1) {
+      if (this.data.length > 500) {
+        return this.processBigData();
+      } else {
+        return this.appendItemsToCollection(this.data);
+      }
+    }
+  };
+
+  BanksGeo.prototype.processBigData = function() {
+    var tmp,
+      _this = this;
+    tmp = this.data.concat();
+    return setTimeout(function() {
+      var points;
+      points = tmp.splice(0, 1000);
+      _this.appendItemsToCollection(points);
+      if (tmp.length > 0) {
+        return setTimeout(arguments.callee, 25);
+      }
+    }, 25);
+  };
+
   BanksGeo.prototype.buildGeoObject = function(object) {
-    return new ymaps.Placemark(object.coordinates, {});
+    var icon;
+    icon = ymaps.templateLayoutFactory.createClass('<div class="map__point $[properties.type] $[properties.main]" data-type="$[properties.type]">$[properties.icon_url]</div>', {
+      build: function() {
+        return icon.superclass.build.call(this);
+      },
+      clear: function() {
+        return icon.superclass.clear.call(this);
+      }
+    });
+    return new ymaps.Placemark([object.latitude, object.longitude], {
+      id: object['id'],
+      type: 'map__point--' + object.type,
+      main: object.is_main === true ? 'map__point--main' : '',
+      icon_url: object.icon_url != null ? '<img src="//banki.ru' + object.icon_url + '">' : '',
+      hintContent: ''
+    }, {
+      hasHint: true,
+      iconLayout: icon,
+      balloonShadow: false
+    });
+  };
+
+  BanksGeo.prototype.appendItemsToCollection = function(objects) {
+    var i, iterations, _results;
+    iterations = objects.length % 8;
+    i = objects.length - 1;
+    _results = [];
+    while (iterations) {
+      this.appendToCollection(this.buildGeoObject(objects[i--]));
+      iterations--;
+      iterations = Math.floor(objects.length / 8);
+      _results.push((function() {
+        var _results1;
+        _results1 = [];
+        while (iterations) {
+          this.appendToCollection(this.buildGeoObject(objects[i--]));
+          this.appendToCollection(this.buildGeoObject(objects[i--]));
+          this.appendToCollection(this.buildGeoObject(objects[i--]));
+          this.appendToCollection(this.buildGeoObject(objects[i--]));
+          this.appendToCollection(this.buildGeoObject(objects[i--]));
+          this.appendToCollection(this.buildGeoObject(objects[i--]));
+          this.appendToCollection(this.buildGeoObject(objects[i--]));
+          this.appendToCollection(this.buildGeoObject(objects[i--]));
+          _results1.push(iterations--);
+        }
+        return _results1;
+      }).call(this));
+    }
+    return _results;
   };
 
   BanksGeo.prototype.appendToCollection = function(object) {

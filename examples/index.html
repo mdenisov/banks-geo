@@ -28,61 +28,13 @@
         $(function() {
 
             var points = [
-                {id: 1, clusterCaption: 'Name 1', coordinates: [55.831903,37.411961]},
-                {id: 1, clusterCaption: 'Name 1', coordinates: [55.763338,37.565466]},
-                {id: 1, clusterCaption: 'Name 1', coordinates: [55.763338,37.565466]},
-                {id: 1, clusterCaption: 'Name 1', coordinates: [55.744522,37.616378]},
-                {id: 1, clusterCaption: 'Name 1', coordinates: [55.780898,37.642889]},
-                {id: 1, clusterCaption: 'Name 1', coordinates: [55.793559,37.435983]},
-                {id: 1, clusterCaption: 'Name 1', coordinates: [55.800584,37.675638]},
-                {id: 1, clusterCaption: 'Name 1', coordinates: [55.716733,37.589988]},
-                {id: 1, clusterCaption: 'Name 1', coordinates: [55.775724,37.560840]},
-                {id: 1, clusterCaption: 'Name 1', coordinates: [55.822144,37.433781]},
-                {id: 1, clusterCaption: 'Name 1', coordinates: [55.874170,37.669838]},
-                {id: 1, clusterCaption: 'Name 1', coordinates: [55.716770,37.482338]},
-                {id: 1, clusterCaption: 'Name 1', coordinates: [55.780850,37.750210]},
-                {id: 1, clusterCaption: 'Name 1', coordinates: [55.810906,37.654142]},
-                {id: 1, clusterCaption: 'Name 1', coordinates: [55.865386,37.713329]},
-                {id: 1, clusterCaption: 'Name 1', coordinates: [55.847121,37.525797]},
-                {id: 1, clusterCaption: 'Name 1', coordinates: [55.778655,37.710743]},
-                {id: 1, clusterCaption: 'Name 1', coordinates: [55.623415,37.717934]},
-                {id: 1, clusterCaption: 'Name 1', coordinates: [55.863193,37.737000]},
-                {id: 1, clusterCaption: 'Name 1', coordinates: [55.866770,37.760113]},
-                {id: 1, clusterCaption: 'Name 1', coordinates: [55.698261,37.730838]},
-                {id: 1, clusterCaption: 'Name 1', coordinates: [55.633800,37.564769]},
-                {id: 1, clusterCaption: 'Name 1', coordinates: [55.639996,37.539400]},
-                {id: 1, clusterCaption: 'Name 1', coordinates: [55.690230,37.405853]},
-                {id: 1, clusterCaption: 'Name 1', coordinates: [55.775970,37.512900]},
-                {id: 1, clusterCaption: 'Name 1', coordinates: [55.775777,37.442180]},
-                {id: 1, clusterCaption: 'Name 1', coordinates: [55.811814,37.440448]},
-                {id: 1, clusterCaption: 'Name 1', coordinates: [55.751841,37.404853]},
-                {id: 1, clusterCaption: 'Name 1', coordinates: [55.627303,37.728976]},
-                {id: 1, clusterCaption: 'Name 1', coordinates: [55.816515,37.597163]},
-                {id: 1, clusterCaption: 'Name 1', coordinates: [55.664352,37.689397]},
-                {id: 1, clusterCaption: 'Name 1', coordinates: [55.679195,37.600961]},
-                {id: 1, clusterCaption: 'Name 1', coordinates: [55.673873,37.658425]},
-                {id: 1, clusterCaption: 'Name 1', coordinates: [55.681006,37.605126]},
-                {id: 1, clusterCaption: 'Name 1', coordinates: [55.876327,37.431744]},
-                {id: 1, clusterCaption: 'Name 1', coordinates: [55.843363,37.778445]},
-                {id: 1, clusterCaption: 'Name 1', coordinates: [55.875445,37.549348]},
-                {id: 1, clusterCaption: 'Name 1', coordinates: [55.662903,37.702087]},
-                {id: 1, clusterCaption: 'Name 1', coordinates: [55.746099,37.434113]},
-                {id: 1, clusterCaption: 'Name 1', coordinates: [55.838660,37.712326]},
-                {id: 1, clusterCaption: 'Name 1', coordinates: [55.774838,37.415725]},
-                {id: 1, clusterCaption: 'Name 1', coordinates: [55.871539,37.630223]},
-                {id: 1, clusterCaption: 'Name 1', coordinates: [55.657037,37.571271]},
-                {id: 1, clusterCaption: 'Name 1', coordinates: [55.691046,37.711026]},
-                {id: 1, clusterCaption: 'Name 1', coordinates: [55.803972,37.659610]},
-                {id: 1, clusterCaption: 'Name 1', coordinates: [55.616448,37.452759]},
-                {id: 1, clusterCaption: 'Name 1', coordinates: [55.781329,37.442781]},
-                {id: 1, clusterCaption: 'Name 1', coordinates: [55.844708,37.748870]},
-                {id: 1, clusterCaption: 'Name 1', coordinates: [55.723123,37.406067]},
-                {id: 1, clusterCaption: 'Name 1', coordinates: [55.858585,37.484980]}
+                {"bank_id":"4045","latitude":"55.76778590324839","longitude":"37.62066825396713","type":"atm","is_main":"0","icon_url":"\/upload\/iblock\/53c\/4045.gif","id":"5226383"}
             ];
             var Map = new BanksGeo('map', {
                 center: [55.76, 37.64],
-                zoom: 10,
-                data: points
+                zoom: 15,
+//                data: points
+                url: 'data/data1.json'
             });
 
         });

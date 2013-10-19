@@ -48,6 +48,10 @@ class BanksGeo
 			if typeof options.data == 'object'
 				@data = options.data
 
+		if options.url?
+			if typeof options.url == 'string'
+				@url = options.url
+
 		ymaps.ready(@init)
 
 	#@method: init
@@ -65,6 +69,7 @@ class BanksGeo
 
 		@buildGeoCollection()
 		@processData()
+		@loadData()
 
 		@addToMap(@collection)
 
@@ -78,19 +83,92 @@ class BanksGeo
 		else
 			@collection = new ymaps.GeoObjectCollection()
 
+	#@method: loadData
+	#Load point data
+	loadData: () ->
+		if @url?
+			$.ajax @url,
+				dataType: 'json'
+				error: (jqXHR, textStatus, errorThrown) =>
+					@log "AJAX Error: #{textStatus}"
+				success: (data, textStatus, jqXHR) =>
+					@data = data
+					@processData()
+
 	#@method: processData
-	#Process point data
+	#Process points data
 	processData: () ->
-		if @data.length > 1
-			for point in @data
-				@appendToCollection(@buildGeoObject(point))
+		if @data? and @data.length > 1
+			if @data.length > 500
+				@processBigData()
+			else
+#				for point in @data
+					@appendItemsToCollection(@data)
+#					@appendToCollection(@buildGeoObject(point))
+
+	#@method: processBigData
+	#Process big points data
+	processBigData: () ->
+		tmp = @data.concat()
+
+		setTimeout =>
+			points = tmp.splice(0, 1000)
+			@appendItemsToCollection(points)
+
+			if tmp.length > 0
+				setTimeout(arguments.callee, 25)
+		, 25
 
 	#@method: buildGeoObject
 	#Create an Geo Object
 	buildGeoObject: (object) ->
-		new ymaps.Placemark(object.coordinates, {
+		icon = ymaps.templateLayoutFactory.createClass(
+			'<div class="map__point $[properties.type] $[properties.main]" data-type="$[properties.type]">$[properties.icon_url]</div>'
+			{
+				build: () ->
+					icon.superclass.build.call(@)
+				clear: () ->
+					icon.superclass.clear.call(@)
+			})
 
-		})
+		new ymaps.Placemark(
+			[object.latitude, object.longitude]
+			{
+					id: object['id']
+					type: 'map__point--' + object.type
+					main: if object.is_main is true then 'map__point--main' else ''
+					icon_url: if object.icon_url? then '<img src="//banki.ru' + object.icon_url + '">' else ''
+					hintContent: ''
+				}, {
+					hasHint: true,
+					iconLayout: icon,
+	#				balloonLayout: options.balloon,
+					balloonShadow: false
+				}
+		);
+
+	#@method: appendItemsToCollection
+	#Append Geo Objects to collection
+	appendItemsToCollection: (objects) ->
+		iterations = objects.length % 8
+		i = objects.length - 1
+
+		while iterations
+			@appendToCollection(@buildGeoObject(objects[i--]))
+			iterations--
+
+			iterations = Math.floor(objects.length / 8)
+
+			while iterations
+				@appendToCollection(@buildGeoObject(objects[i--]))
+				@appendToCollection(@buildGeoObject(objects[i--]))
+				@appendToCollection(@buildGeoObject(objects[i--]))
+				@appendToCollection(@buildGeoObject(objects[i--]))
+				@appendToCollection(@buildGeoObject(objects[i--]))
+				@appendToCollection(@buildGeoObject(objects[i--]))
+				@appendToCollection(@buildGeoObject(objects[i--]))
+				@appendToCollection(@buildGeoObject(objects[i--]))
+				iterations--
 
 	#@method: appendToCollection
 	#Append Geo Object to collection

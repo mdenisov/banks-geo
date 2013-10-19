@@ -842,4 +842,34 @@ textarea {
 .map {
 	width: 100%;
 	height: 400px;
+
+	&__point {
+		background-image: url('../img/placemark-icons.png');
+		background-repeat: no-repeat;
+		height: 49px;
+		width: 40px;
+		margin: -49px 0 0 -20px;
+
+		&--office, &--branch {
+			background-position: left -49px;
+		}
+
+		&--atm {
+			background-position: left 0;
+		}
+
+		img {
+			display: block;
+			zoom: 1;
+			background: #ffffff;
+			border: 1px solid #ffffff;
+			width: 16px;
+			height: 16px;
+			position: absolute;
+			left: 7px;
+			top: 5px;
+			outline: none;
+			margin: -48px 0 0 -20px;
+		}
+	}
 }
