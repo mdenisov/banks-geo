@@ -18,6 +18,7 @@ BanksGeo = (function() {
       empty_zoom: 'Error: Empty zoom'
     };
     this.useCluster = true;
+    this.useMapControl = true;
     if (container == null) {
       return this.log(this._messages.empty_map);
     }
@@ -29,6 +30,9 @@ BanksGeo = (function() {
     }
     if (options.useCluster != null) {
       this.useCluster = options.useCluster === true ? true : false;
+    }
+    if (options.useMapControl != null) {
+      this.useMapControl = options.useMapControl === true ? true : false;
     }
     if (container) {
       this.container = '#' + container;
@@ -53,12 +57,15 @@ BanksGeo = (function() {
       center: this.center,
       zoom: this.zoom
     });
-    this.map.controls.add('zoomControl', {
-      left: 5,
-      top: 5
-    });
+    if (this.useMapControl === true) {
+      this.map.controls.add('zoomControl', {
+        left: 5,
+        top: 5
+      });
+    }
     this.buildGeoCollection();
-    return this.processData();
+    this.processData();
+    return this.addToMap(this.collection);
   };
 
   BanksGeo.prototype.buildGeoCollection = function() {
@@ -72,15 +79,16 @@ BanksGeo = (function() {
   };
 
   BanksGeo.prototype.processData = function() {
-    var point, _i, _len, _ref;
+    var point, _i, _len, _ref, _results;
     if (this.data.length > 1) {
       _ref = this.data;
+      _results = [];
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         point = _ref[_i];
-        this.appendToCollection(this.buildGeoObject(point));
+        _results.push(this.appendToCollection(this.buildGeoObject(point)));
       }
+      return _results;
     }
-    return this.addToMap(this.collection);
   };
 
   BanksGeo.prototype.buildGeoObject = function(object) {

@@ -18,6 +18,7 @@ class BanksGeo
 			empty_zoom: 'Error: Empty zoom'
 		}
 		@useCluster = true
+		@useMapControl = true
 
 		unless container?
 			return @log @_messages.empty_map
@@ -30,6 +31,9 @@ class BanksGeo
 
 		if options.useCluster?
 			@useCluster = if options.useCluster is true then true else false
+
+		if options.useMapControl?
+			@useMapControl = if options.useMapControl is true then true else false
 
 		if container
 			@container = '#' + container
@@ -56,11 +60,13 @@ class BanksGeo
 			@zoom
 		});
 
-		@map.controls.add('zoomControl', { left: 5, top: 5 })
+		if @useMapControl is true
+			@map.controls.add('zoomControl', { left: 5, top: 5 })
+
 		@buildGeoCollection()
 		@processData()
 
-#		@addToMap(@collection)
+		@addToMap(@collection)
 
 	#@method: buildGeoCollection
 	#Create Geo Collection or Clusterer
@@ -78,8 +84,6 @@ class BanksGeo
 		if @data.length > 1
 			for point in @data
 				@appendToCollection(@buildGeoObject(point))
-
-		@addToMap(@collection)
 
 	#@method: buildGeoObject
 	#Create an Geo Object
