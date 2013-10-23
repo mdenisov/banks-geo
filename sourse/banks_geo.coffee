@@ -1,7 +1,7 @@
 ###
 @author: Maxim Denisov (denisovmax1988@yandex.ru)
 @date: 19/10/2013
-@version: 0.1
+@version: 0.1.1
 @copyright: Banki.ru (www.banki.ru)
 ###
 
@@ -155,18 +155,18 @@ class BanksGeo
 			@appendToCollection(@buildGeoObject(objects[i--]))
 			iterations--
 
-			iterations = Math.floor(objects.length / 8)
+		iterations = Math.floor(objects.length / 8)
 
-			while iterations
-				@appendToCollection(@buildGeoObject(objects[i--]))
-				@appendToCollection(@buildGeoObject(objects[i--]))
-				@appendToCollection(@buildGeoObject(objects[i--]))
-				@appendToCollection(@buildGeoObject(objects[i--]))
-				@appendToCollection(@buildGeoObject(objects[i--]))
-				@appendToCollection(@buildGeoObject(objects[i--]))
-				@appendToCollection(@buildGeoObject(objects[i--]))
-				@appendToCollection(@buildGeoObject(objects[i--]))
-				iterations--
+		while iterations
+			@appendToCollection(@buildGeoObject(objects[i--]))
+			@appendToCollection(@buildGeoObject(objects[i--]))
+			@appendToCollection(@buildGeoObject(objects[i--]))
+			@appendToCollection(@buildGeoObject(objects[i--]))
+			@appendToCollection(@buildGeoObject(objects[i--]))
+			@appendToCollection(@buildGeoObject(objects[i--]))
+			@appendToCollection(@buildGeoObject(objects[i--]))
+			@appendToCollection(@buildGeoObject(objects[i--]))
+			iterations--
 
 	#@method: appendToCollection
 	#Append Geo Object to collection
