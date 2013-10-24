@@ -7,7 +7,8 @@
 */
 
 var BanksGeo,
-  __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
+  __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+  __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
 BanksGeo = (function() {
   function BanksGeo(container, options) {
@@ -17,8 +18,16 @@ BanksGeo = (function() {
       empty_options: 'Error: Empty map options',
       empty_center: 'Error: Empty center',
       empty_zoom: 'Error: Empty zoom',
-      bad_data: 'Error: Bad data object'
+      bad_data: 'Error: Bad data object',
+      bad_response: 'Error: Bad data object'
     };
+    this._region = null;
+    this._serviceUrl = '/api/';
+    this._ajaxCount = 0;
+    this._center = [];
+    this._zoom = 10;
+    this._regionName = '';
+    this._regionIds = ['4', '211'];
     this._useCluster = true;
     this._useMapControl = true;
     if ((container == null) && typeof container !== "string") {
@@ -27,22 +36,25 @@ BanksGeo = (function() {
     if ((options == null) && typeof container !== "object") {
       return this.log(this._messages.empty_options);
     }
-    if (options.center == null) {
-      return this.log(this._messages.empty_center);
+    if ((options.region != null) && parseInt(options.region, 10) > 0) {
+      this._region = options.region;
+    } else {
+      if (options.center == null) {
+        return this.log(this._messages.empty_center);
+      }
+      if (options.zoom == null) {
+        return this.log(this._messages.empty_zoom);
+      }
     }
-    if (options.zoom == null) {
-      return this.log(this._messages.empty_zoom);
-    }
-    if (options.useCluster != null) {
-      this._useCluster = options.useCluster === true ? true : false;
-    }
-    if (options.useMapControl != null) {
-      this._useMapControl = options.useMapControl === true ? true : false;
+    if (options.mapControls != null) {
+      this._useMapControl = options.mapControls === true ? true : false;
     }
     this.container = '#' + container;
     this.$container = $(this.container);
     this.center = options.center;
     this.zoom = options.zoom;
+    this.$container.addClass('banks-geo').append('<div class="banks-geo__loader"/>');
+    this.loader = this.$container.children('.banks-geo__loader');
     if (options.data != null) {
       if (typeof options.data === 'function') {
         this.log('1');
@@ -56,25 +68,98 @@ BanksGeo = (function() {
         this.url = options.url;
       }
     }
-    ymaps.ready(this.init);
+    this.init();
   }
 
   BanksGeo.prototype.init = function() {
-    this.log('Initialize');
-    this.map = new ymaps.Map(this.$container[0], {
-      center: this.center,
-      zoom: this.zoom
-    });
-    if (this._useMapControl === true) {
-      this.map.controls.add('zoomControl', {
-        left: 5,
-        top: 5
-      });
+    if (this._region != null) {
+      return this.getCenterByRegion();
+    } else {
+      return this.initMap();
     }
-    this.buildGeoCollection();
-    this.processData();
-    this.loadData();
-    return this.addToMap(this.collection);
+  };
+
+  BanksGeo.prototype._getAjaxCount = function() {
+    this._ajaxCount++;
+    return this._ajaxCount.toString();
+  };
+
+  BanksGeo.prototype._sendAjax = function(options, callback) {
+    var _this = this;
+    options = options || {};
+    return $.ajax(this._serviceUrl, {
+      cache: false,
+      type: 'POST',
+      dataType: 'json',
+      data: JSON.stringify({
+        "jsonrpc": "2.0",
+        "method": options.method,
+        "params": options.params,
+        "id": this._getAjaxCount()
+      }),
+      error: function(jqXHR, textStatus, errorThrown) {
+        return _this.log("AJAX Error: " + textStatus);
+      },
+      success: function(data, textStatus, jqXHR) {
+        return callback != null ? callback.call(_this, data.result) : void 0;
+      }
+    });
+  };
+
+  BanksGeo.prototype._isUseClusters = function() {
+    var _ref;
+    if ((this._region != null) && (_ref = this._region, __indexOf.call(this._regionIds, _ref) >= 0)) {
+      return true;
+    } else {
+      return false;
+    }
+  };
+
+  BanksGeo.prototype.getCenterByRegion = function() {
+    var options;
+    options = {
+      method: 'region/get',
+      params: {
+        id: this._region
+      }
+    };
+    return this._sendAjax(options, this.processMapOptions);
+  };
+
+  BanksGeo.prototype.processMapOptions = function(result) {
+    var data;
+    if (result.data != null) {
+      data = result.data;
+      this.center = [data.latitude, data.longitude];
+      this.zoom = data.zoom;
+      return this.initMap();
+    } else {
+      return this.log(this._messages.bad_response);
+    }
+  };
+
+  BanksGeo.prototype.initMap = function() {
+    var _this = this;
+    return ymaps.ready(function() {
+      _this.map = new ymaps.Map(_this.$container[0], {
+        center: _this.center,
+        zoom: _this.zoom
+      });
+      if (_this._useMapControl === true) {
+        _this.map.controls.add('zoomControl', {
+          left: 5,
+          top: 5
+        });
+      }
+      _this.buildGeoCollection();
+      if ((_this.data != null) && _this.data.length > 0) {
+        return _this.processData({
+          data: _this.data
+        });
+      } else {
+        return _this.getPointsData();
+      }
+    });
   };
 
   BanksGeo.prototype.setData = function(data) {
@@ -85,40 +170,56 @@ BanksGeo = (function() {
     }
   };
 
+  BanksGeo.prototype.getPointsData = function() {
+    var coords, options;
+    coords = this.map.getBounds();
+    options = {
+      method: 'bankGeo/getObjectsByFilter',
+      params: {
+        fields: ['bank_id', 'latitude', 'longitude', 'type', 'is_main', 'icon_url'],
+        region_id: [this._region],
+        type: ["office", "branch", "atm"],
+        longitude_nw: coords[0][1],
+        latitude_nw: coords[1][0],
+        longitude_se: coords[1][1],
+        latitude_se: coords[0][0],
+        zoom: this._zoom
+      }
+    };
+    if (this._isUseClusters()) {
+      options.method = 'bankGeo/getClusters';
+      options.params.region_id = this._region;
+      delete options.params.fields;
+    }
+    return this._sendAjax(options, this.processData);
+  };
+
   BanksGeo.prototype.buildGeoCollection = function() {
-    if (this._useCluster === true) {
-      return this.collection = new ymaps.Clusterer({
-        preset: 'twirl#blackClusterIcons'
-      });
+    if (this._isUseClusters() === true) {
+      this.collection = new ymaps.GeoObjectCollection();
     } else {
-      return this.collection = new ymaps.GeoObjectCollection();
-    }
-  };
-
-  BanksGeo.prototype.loadData = function() {
-    var _this = this;
-    if (this.url != null) {
-      return $.ajax(this.url, {
-        dataType: 'json',
-        error: function(jqXHR, textStatus, errorThrown) {
-          return _this.log("AJAX Error: " + textStatus);
-        },
-        success: function(data, textStatus, jqXHR) {
-          _this.data = data;
-          return _this.processData();
-        }
+      this.collection = new ymaps.Clusterer({
+        gridSize: 128,
+        preset: "twirl#blackClusterIcons",
+        margin: 25,
+        minClusterSize: 2,
+        clusterDisableClickZoom: false,
+        balloonShadow: false
       });
     }
+    return this.addToMap(this.collection);
   };
 
-  BanksGeo.prototype.processData = function() {
-    if ((this.data != null) && this.data.length > 0) {
+  BanksGeo.prototype.processData = function(result) {
+    if ((result.data != null) && result.data.length > 0) {
+      this.data = result.data;
       if (this.data.length > 500) {
-        return this.processBigData();
+        this.processBigData();
       } else {
-        return this.appendItemsToCollection(this.data);
+        this.appendItemsToCollection(this.data);
       }
     }
+    return this.setLoader(false);
   };
 
   BanksGeo.prototype.processBigData = function() {
@@ -136,26 +237,52 @@ BanksGeo = (function() {
   };
 
   BanksGeo.prototype.buildGeoObject = function(object) {
-    var icon;
-    icon = ymaps.templateLayoutFactory.createClass('<div class="map__point $[properties.type] $[properties.main]" data-type="$[properties.type]">$[properties.icon_url]</div>', {
-      build: function() {
-        return icon.superclass.build.call(this);
-      },
-      clear: function() {
-        return icon.superclass.clear.call(this);
+    var icon, size;
+    if ((object.points_count != null) && object.points_count > 1) {
+      size = 's';
+      icon = ymaps.templateLayoutFactory.createClass('<div class="banks-geo__cluster banks-geo__cluster--$[properties.size]" data-type="$[properties.points]">$[properties.points]</div>', {
+        build: function() {
+          return icon.superclass.build.call(this);
+        },
+        clear: function() {
+          return icon.superclass.clear.call(this);
+        }
+      });
+      if (object.points_count >= 1000) {
+        size = 'b';
+      } else if (object.points_count >= 10) {
+        size = 'm';
       }
-    });
-    return new ymaps.Placemark([object.latitude, object.longitude], {
-      id: object['id'],
-      type: 'map__point--' + object.type,
-      main: object.is_main === true ? 'map__point--main' : '',
-      icon_url: object.icon_url != null ? '<img src="//banki.ru' + object.icon_url + '">' : '',
-      hintContent: ''
-    }, {
-      hasHint: true,
-      iconLayout: icon,
-      balloonShadow: false
-    });
+      return new ymaps.Placemark([object.latitude, object.longitude], {
+        size: size,
+        points: object.points_count,
+        iconContent: object.points_count
+      }, {
+        iconLayout: icon
+      });
+    } else {
+      icon = ymaps.templateLayoutFactory.createClass('<div class="banks-geo__point $[properties.type] $[properties.main]" data-type="$[properties.type]">$[properties.icon_url]</div>', {
+        build: function() {
+          return icon.superclass.build.call(this);
+        },
+        clear: function() {
+          return icon.superclass.clear.call(this);
+        }
+      });
+      return new ymaps.Placemark([object.latitude, object.longitude], {
+        id: object['id'],
+        type: 'banks-geo__point--' + object.type,
+        main: object.is_main === true ? 'banks-geo__point--main' : '',
+        icon_url: object.icon_url != null ? '<img src="' + object.icon_url + '">' : '',
+        hintContent: object.name,
+        balloonContent: object.address
+      }, {
+        hasHint: true,
+        iconLayout: icon,
+        balloonCloseButton: true,
+        balloonShadow: false
+      });
+    }
   };
 
   BanksGeo.prototype.appendItemsToCollection = function(objects) {
@@ -186,8 +313,24 @@ BanksGeo = (function() {
     return this.collection.add(object);
   };
 
+  BanksGeo.prototype.setLoader = function(state) {
+    if ((state != null) && state === true) {
+      return this.loader.show();
+    } else {
+      return this.loader.hide();
+    }
+  };
+
   BanksGeo.prototype.addToMap = function(object) {
     return this.map.geoObjects.add(object);
+  };
+
+  BanksGeo.prototype.setCenter = function(center, zoom) {
+    return this.map.setCenter(center, zoom);
+  };
+
+  BanksGeo.prototype.setZoom = function(zoom) {
+    return this.map.setCenter(zoom);
   };
 
   BanksGeo.prototype.log = function(message) {
