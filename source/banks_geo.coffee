@@ -25,10 +25,8 @@ class BanksGeo
 		@_ajaxCount = 0
 		@_center = []
 		@_zoom = 10
-		@_regionName = ''
 		@_regionIds = ['4', '211']
 
-		@_useCluster = true
 		@_useMapControl = true
 
 		if not container? and typeof container isnt "string"
@@ -49,32 +47,27 @@ class BanksGeo
 		if options.mapControls?
 			@_useMapControl = if options.mapControls is true then true else false
 
-		@container = '#' + container
-		@$container = $(@container)
-		@center = options.center
-		@zoom = options.zoom
+		@_data = []
+		@_map
+		@_container = '#' + container
+		@_$container = $(@_container)
+		@_center = options.center
+		@_zoom = options.zoom
 
-		@$container.addClass('banks-geo').append('<div class="banks-geo__loader"/>')
+		@_$container.addClass('banks-geo').append('<div class="banks-geo__loader"/>')
 
-		@loader = @$container.children('.banks-geo__loader')
+		@_loader = @_$container.children('.banks-geo__loader')
 
 		if options.data?
-			if typeof options.data is 'function'
-				@log '1'
-
 			if typeof options.data is 'object'
-				@data = options.data
-
-		if options.url?
-			if typeof options.url is 'string'
-				@url = options.url
+				@_data = options.data
 
 		@init()
 
 	#@method: init
 	#Initialize Yandex Map and preprocess data
 	init: () =>
-		if @._region?
+		if @_region?
 			@getCenterByRegion()
 		else
 			@initMap()
@@ -117,7 +110,7 @@ class BanksGeo
 		options = {
 			method: 'region/get'
 			params: {
-				id: @._region
+				id: @_region
 			}
 		}
 
@@ -126,8 +119,8 @@ class BanksGeo
 	processMapOptions: (result) ->
 		if result.data?
 			data = result.data
-			@center = [data.latitude, data.longitude]
-			@zoom = data.zoom
+			@_center = [parseFloat(data.latitude, 10), parseFloat(data.longitude, 10)]
+			@_zoom = parseInt(data.zoom, 10)
 
 			@initMap()
 		else
@@ -138,18 +131,18 @@ class BanksGeo
 	#Initialize Yandex Map
 	initMap: () ->
 		ymaps.ready( () =>
-			@map = new ymaps.Map(@$container[0], {
-				@center
-				@zoom
+			@_map = new ymaps.Map(@_$container[0], {
+				@_center
+				@_zoom
 			});
 
 			if @_useMapControl is true
-				@map.controls.add('zoomControl', { left: 5, top: 5 })
+				@_map.controls.add('zoomControl', { left: 5, top: 5 })
 
 			@buildGeoCollection()
 
-			if @data? and @data.length > 0
-				@processData({data: @data})
+			if @_data? and @_data.length > 0
+				@processData({data: @_data})
 			else
 				@getPointsData()
 		)
@@ -160,7 +153,7 @@ class BanksGeo
 		if not data? or typeof data isnt "object" or data.length is 0
 			@log @_messages.bad_data
 		else
-			@data = data
+			@_data = data
 
 	#@method: getPointsData
 	#Get point data
@@ -192,9 +185,9 @@ class BanksGeo
 	#Create Geo Collection or Clusterer
 	buildGeoCollection: () ->
 		if @_isUseClusters() is true
-			@collection = new ymaps.GeoObjectCollection()
+			@_collection = new ymaps.GeoObjectCollection()
 		else
-			@collection = new ymaps.Clusterer({
+			@_collection = new ymaps.Clusterer({
 				gridSize: 128
 				preset: "twirl#blackClusterIcons"
 				margin: 25
@@ -203,24 +196,24 @@ class BanksGeo
 				balloonShadow: false
 			})
 
-		@addToMap(@collection)
+		@addToMap(@_collection)
 
 	#@method: processData
 	#Process points data
 	processData: (result) ->
 		if result.data? and result.data.length > 0
-			@data = result.data
-			if @data.length > 500
+			@_data = result.data
+			if @_data.length > 500
 				@processBigData()
 			else
-				@appendItemsToCollection(@data)
+				@appendItemsToCollection(@_data)
 
 		@setLoader(false)
 
 	#@method: processBigData
 	#Process big points data
 	processBigData: () ->
-		tmp = @data.concat()
+		tmp = @_data.concat()
 
 		setTimeout =>
 			points = tmp.splice(0, 1000)
@@ -250,41 +243,42 @@ class BanksGeo
 
 			new ymaps.Placemark(
 				[object.latitude, object.longitude],
-			{
-				size: size,
-				points: object.points_count,
-				iconContent: object.points_count
-			}, {
-				iconLayout: icon
-			}
-			);
+				{
+					size: size,
+					points: object.points_count,
+					iconContent: object.points_count
+				}, {
+					iconLayout: icon
+				}
+			)
 
 		else
 			icon = ymaps.templateLayoutFactory.createClass(
 				'<div class="banks-geo__point $[properties.type] $[properties.main]" data-type="$[properties.type]">$[properties.icon_url]</div>'
-			{
-				build: () ->
-					icon.superclass.build.call(@)
-				clear: () ->
-					icon.superclass.clear.call(@)
-			})
+				{
+					build: () ->
+						icon.superclass.build.call(@)
+					clear: () ->
+						icon.superclass.clear.call(@)
+				}
+			)
 
 			new ymaps.Placemark(
 				[object.latitude, object.longitude]
-			{
-				id: object['id']
-				type: 'banks-geo__point--' + object.type
-				main: if object.is_main is true then 'banks-geo__point--main' else ''
-				icon_url: if object.icon_url? then '<img src="' + object.icon_url + '">' else ''
-				hintContent: object.name
-				balloonContent: object.address
-			}, {
-				hasHint: true
-				iconLayout: icon
-				balloonCloseButton: true
-				balloonShadow: false
-			}
-			);
+				{
+					id: object['id']
+					type: 'banks-geo__point--' + object.type
+					main: if object.is_main is true then 'banks-geo__point--main' else ''
+					icon_url: if object.icon_url? then '<img src="' + object.icon_url + '">' else ''
+					hintContent: object.name
+					balloonContent: object.address
+				}, {
+					hasHint: true
+					iconLayout: icon
+					balloonCloseButton: true
+					balloonShadow: false
+				}
+			)
 
 	#@method: appendItemsToCollection
 	#Append Geo Objects to collection
@@ -313,23 +307,23 @@ class BanksGeo
 	#@method: appendToCollection
 	#Append Geo Object to collection
 	appendToCollection: (object) ->
-		@collection.add(object);
+		@_collection.add(object);
 
 	setLoader: (state) ->
 		if state? and state is true
-			@loader.show()
+			@_loader.show()
 		else
-			@loader.hide()
+			@_loader.hide()
 
 	# Map functions
 	addToMap: (object) ->
-		@map.geoObjects.add(object)
+		@_map.geoObjects.add(object)
 
 	setCenter: (center, zoom) ->
-		@map.setCenter(center, zoom)
+		@_map.setCenter(center, zoom)
 
 	setZoom: (zoom) ->
-		@map.setCenter(zoom)
+		@_map.setCenter(zoom)
 
 	# Halpers
 	log: (message) ->
