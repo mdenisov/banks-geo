@@ -8,20 +8,24 @@
 #BanksGeo = exports? and exports or @BanksGeo = {}
 
 class BanksGeo
-
 	#@method: constructor
 	#Constructor
 	constructor: (container, options) ->
 		@_messages = {
 			empty_map: 'Error: Empty map'
+			empty_options: 'Error: Empty map options'
 			empty_center: 'Error: Empty center'
 			empty_zoom: 'Error: Empty zoom'
+			bad_data: 'Error: Bad data object'
 		}
-		@useCluster = true
-		@useMapControl = true
+		@_useCluster = true
+		@_useMapControl = true
 
-		unless container?
+		if not container? and typeof container isnt "string"
 			return @log @_messages.empty_map
+
+		if not options? and typeof container isnt "object"
+			return @log @_messages.empty_options
 
 		unless options.center?
 			return @log @_messages.empty_center
@@ -30,16 +34,15 @@ class BanksGeo
 			return @log @_messages.empty_zoom
 
 		if options.useCluster?
-			@useCluster = if options.useCluster is true then true else false
+			@_useCluster = if options.useCluster is true then true else false
 
 		if options.useMapControl?
-			@useMapControl = if options.useMapControl is true then true else false
+			@_useMapControl = if options.useMapControl is true then true else false
 
-		if container
-			@container = '#' + container
-			@$container = $(@container)
-			@center = options.center
-			@zoom = options.zoom
+		@container = '#' + container
+		@$container = $(@container)
+		@center = options.center
+		@zoom = options.zoom
 
 		if options.data?
 			if typeof options.data == 'function'
@@ -64,7 +67,7 @@ class BanksGeo
 			@zoom
 		});
 
-		if @useMapControl is true
+		if @_useMapControl is true
 			@map.controls.add('zoomControl', { left: 5, top: 5 })
 
 		@buildGeoCollection()
@@ -73,10 +76,16 @@ class BanksGeo
 
 		@addToMap(@collection)
 
+	setData: (data) ->
+		if not data? or typeof data isnt "object" or data.length is 0
+			@log @_messages.bad_data
+		else
+			@data = data
+
 	#@method: buildGeoCollection
 	#Create Geo Collection or Clusterer
 	buildGeoCollection: () ->
-		if @useCluster is true
+		if @_useCluster is true
 			@collection = new ymaps.Clusterer({
 				preset: 'twirl#blackClusterIcons'
 			})
@@ -151,13 +160,13 @@ class BanksGeo
 		iterations = objects.length % 8
 		i = objects.length - 1
 
-		while iterations
+		while iterations > 0
 			@appendToCollection(@buildGeoObject(objects[i--]))
 			iterations--
 
 		iterations = Math.floor(objects.length / 8)
 
-		while iterations
+		while iterations > 0
 			@appendToCollection(@buildGeoObject(objects[i--]))
 			@appendToCollection(@buildGeoObject(objects[i--]))
 			@appendToCollection(@buildGeoObject(objects[i--]))
@@ -167,6 +176,7 @@ class BanksGeo
 			@appendToCollection(@buildGeoObject(objects[i--]))
 			@appendToCollection(@buildGeoObject(objects[i--]))
 			iterations--
+
 
 	#@method: appendToCollection
 	#Append Geo Object to collection

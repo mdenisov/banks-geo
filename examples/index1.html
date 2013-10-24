@@ -14,7 +14,7 @@
     <link href="css/bootstrap.css" rel="stylesheet" type="text/css" />
     <link href="css/style.css" rel="stylesheet" type="text/css" />
 
-    <script src="//api-maps.yandex.ru/2.0/?lang=ru-RU&load=package.standard,package.clusters" type="text/javascript"></script>
+    <script src="http://api-maps.yandex.ru/2.0/?lang=ru-RU&load=package.standard,package.clusters" type="text/javascript"></script>
 </head>
 <body>
 
@@ -51,7 +51,11 @@ var Map = new BanksGeo('map', {
     center: [55.76, 37.64],
     zoom: 10,
     data: points
-});</pre>
+});
+
+OR
+
+Map.setData(points);</pre>
 
         <hr>
 
@@ -73,11 +77,19 @@ var Map = new BanksGeo('map', {
             var points = [
                 {"bank_id":"4045","latitude":"55.76778590324839","longitude":"37.62066825396713","type":"atm","is_main":"0","icon_url":"\/upload\/iblock\/53c\/4045.gif","id":"5226383"}
             ];
+//            var Map = new BanksGeo('map', {
+//                center: [55.76, 37.64],
+//                zoom: 10,
+//                data: points
+//            });
+
             var Map = new BanksGeo('map', {
                 center: [55.76, 37.64],
                 zoom: 10,
                 data: points
             });
+
+//            Map.setData(points);
 
         });
     </script>
