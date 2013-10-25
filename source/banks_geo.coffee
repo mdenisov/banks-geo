@@ -75,7 +75,7 @@ class BanksGeo
 	#Initialize Yandex Map and preprocess data
 	init: () =>
 		if @._region?
-			@getCenterByRegion()
+			@getDataByRegion()
 		else
 			@initMap()
 
@@ -86,7 +86,7 @@ class BanksGeo
 		@_ajaxCount.toString()
 
 	#@method: _sendAjax
-	#Do ajax
+	#Do API request
 	_sendAjax: (options, callback) ->
 		options = options || {};
 
@@ -113,7 +113,9 @@ class BanksGeo
 		else
 			false
 
-	getCenterByRegion: () ->
+	#@method: getCenterByRegion
+	#Get data about region
+	getDataByRegion: () ->
 		options = {
 			method: 'region/get'
 			params: {
@@ -123,6 +125,8 @@ class BanksGeo
 
 		@._sendAjax(options, @processMapOptions);
 
+	#@method: processMapOptions
+	#Set center and zoom and run Map initialize
 	processMapOptions: (result) ->
 		if result.data?
 			data = result.data

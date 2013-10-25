@@ -73,7 +73,7 @@ BanksGeo = (function() {
 
   BanksGeo.prototype.init = function() {
     if (this._region != null) {
-      return this.getCenterByRegion();
+      return this.getDataByRegion();
     } else {
       return this.initMap();
     }
@@ -115,7 +115,7 @@ BanksGeo = (function() {
     }
   };
 
-  BanksGeo.prototype.getCenterByRegion = function() {
+  BanksGeo.prototype.getDataByRegion = function() {
     var options;
     options = {
       method: 'region/get',
