@@ -1,7 +1,7 @@
 ###
 @author: Maxim Denisov (denisovmax1988@yandex.ru)
 @date: 19/10/2013
-@version: 0.1.1
+@version: 0.1.3
 @copyright: Banki.ru (www.banki.ru)
 ###
 
@@ -24,6 +24,7 @@ class BanksGeo
 		@_map = null
 		@_container = null
 		@_$container = null
+		@_collection = null
 
 		@_region = null
 		@_serviceUrl = '/api/'
@@ -318,7 +319,8 @@ class BanksGeo
 	#@method: appendToCollection
 	#Append Geo Object to collection
 	appendToCollection: (object) ->
-		@_collection.add(object);
+		if object?
+			@_collection.add(object);
 
 	setLoader: (state) ->
 		if state? and state is true
@@ -328,13 +330,16 @@ class BanksGeo
 
 	# Map functions
 	addToMap: (object) ->
-		@_map.geoObjects.add(object)
+		if object?
+			@_map.geoObjects.add(object)
 
 	setCenter: (center, zoom) ->
-		@_map.setCenter(center, zoom)
+		if center? and zoom?
+			@_map.setCenter(center, zoom)
 
 	setZoom: (zoom) ->
-		@_map.setCenter(zoom)
+		if zoom?
+			@_map.setCenter(zoom)
 
 	# Halpers
 	log: (message) ->

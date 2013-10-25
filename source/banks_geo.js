@@ -2,7 +2,7 @@
 /*
 @author: Maxim Denisov (denisovmax1988@yandex.ru)
 @date: 19/10/2013
-@version: 0.1.1
+@version: 0.1.3
 @copyright: Banki.ru (www.banki.ru)
 */
 
@@ -25,6 +25,7 @@ BanksGeo = (function() {
     this._map = null;
     this._container = null;
     this._$container = null;
+    this._collection = null;
     this._region = null;
     this._serviceUrl = '/api/';
     this._ajaxCount = 0;
@@ -307,7 +308,9 @@ BanksGeo = (function() {
   };
 
   BanksGeo.prototype.appendToCollection = function(object) {
-    return this._collection.add(object);
+    if (object != null) {
+      return this._collection.add(object);
+    }
   };
 
   BanksGeo.prototype.setLoader = function(state) {
@@ -319,15 +322,21 @@ BanksGeo = (function() {
   };
 
   BanksGeo.prototype.addToMap = function(object) {
-    return this._map.geoObjects.add(object);
+    if (object != null) {
+      return this._map.geoObjects.add(object);
+    }
   };
 
   BanksGeo.prototype.setCenter = function(center, zoom) {
-    return this._map.setCenter(center, zoom);
+    if ((center != null) && (zoom != null)) {
+      return this._map.setCenter(center, zoom);
+    }
   };
 
   BanksGeo.prototype.setZoom = function(zoom) {
-    return this._map.setCenter(zoom);
+    if (zoom != null) {
+      return this._map.setCenter(zoom);
+    }
   };
 
   BanksGeo.prototype.log = function(message) {
