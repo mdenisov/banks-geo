@@ -209,7 +209,7 @@ BanksGeo = (function() {
   };
 
   BanksGeo.prototype.processData = function(result) {
-    if ((result.data != null) && result.data.length > 0) {
+    if ((result != null) && (result.data != null) && result.data.length > 0) {
       this._data = result.data;
       if (this._data.length > 500) {
         this.processBigData();

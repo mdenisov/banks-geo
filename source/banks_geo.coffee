@@ -213,7 +213,7 @@ class BanksGeo
 	#@method: processData
 	#Process points data
 	processData: (result) ->
-		if result.data? and result.data.length > 0
+		if result? and result.data? and result.data.length > 0
 			@_data = result.data
 			if @_data.length > 500
 				@processBigData()
