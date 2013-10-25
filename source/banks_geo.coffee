@@ -52,8 +52,12 @@ class BanksGeo
 		if options.mapControls?
 			@_useMapControl = if options.mapControls is true then true else false
 
-		@_container = '#' + container
+		@_container = container
 		@_$container = $(@_container)
+
+		if not @_$container? or @_$container.length is 0
+			return @log @_messages.empty_map
+
 		@_center = options.center
 		@_zoom = options.zoom
 
@@ -71,7 +75,7 @@ class BanksGeo
 	#Initialize Yandex Map and preprocess data
 	init: () =>
 		if @_region?
-			@getCenterByRegion()
+			@getDataByRegion()
 		else
 			@initMap()
 
@@ -139,9 +143,9 @@ class BanksGeo
 	initMap: () ->
 		ymaps.ready( () =>
 			@_map = new ymaps.Map(@_$container[0], {
-				@_center
-				@_zoom
-			});
+				center: @_center
+				zoom: @_zoom
+			})
 
 			if @_useMapControl is true
 				@_map.controls.add('zoomControl', { left: 5, top: 5 })
@@ -149,7 +153,7 @@ class BanksGeo
 			@buildGeoCollection()
 
 			if @_data? and @_data.length > 0
-				@processData({data: @_data})
+				@processData(data: @_data)
 			else
 				@getPointsData()
 		)
@@ -165,7 +169,7 @@ class BanksGeo
 	#@method: getPointsData
 	#Get point data
 	getPointsData: () ->
-		coords = @.map.getBounds()
+		coords = @_map.getBounds()
 		options = {
 			method: 'bankGeo/getObjectsByFilter',
 			params: {
@@ -334,4 +338,5 @@ class BanksGeo
 
 	# Halpers
 	log: (message) ->
-		console.log message
+		if console?
+			console.log message

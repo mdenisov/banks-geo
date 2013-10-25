@@ -51,8 +51,11 @@ BanksGeo = (function() {
     if (options.mapControls != null) {
       this._useMapControl = options.mapControls === true ? true : false;
     }
-    this._container = '#' + container;
+    this._container = container;
     this._$container = $(this._container);
+    if ((this._$container == null) || this._$container.length === 0) {
+      return this.log(this._messages.empty_map);
+    }
     this._center = options.center;
     this._zoom = options.zoom;
     this._$container.addClass('banks-geo').append('<div class="banks-geo__loader"/>');
@@ -67,7 +70,7 @@ BanksGeo = (function() {
 
   BanksGeo.prototype.init = function() {
     if (this._region != null) {
-      return this.getCenterByRegion();
+      return this.getDataByRegion();
     } else {
       return this.initMap();
     }
@@ -136,8 +139,8 @@ BanksGeo = (function() {
     var _this = this;
     return ymaps.ready(function() {
       _this._map = new ymaps.Map(_this._$container[0], {
-        _center: _this._center,
-        _zoom: _this._zoom
+        center: _this._center,
+        zoom: _this._zoom
       });
       if (_this._useMapControl === true) {
         _this._map.controls.add('zoomControl', {
@@ -166,7 +169,7 @@ BanksGeo = (function() {
 
   BanksGeo.prototype.getPointsData = function() {
     var coords, options;
-    coords = this.map.getBounds();
+    coords = this._map.getBounds();
     options = {
       method: 'bankGeo/getObjectsByFilter',
       params: {
@@ -328,7 +331,9 @@ BanksGeo = (function() {
   };
 
   BanksGeo.prototype.log = function(message) {
-    return console.log(message);
+    if (typeof console !== "undefined" && console !== null) {
+      return console.log(message);
+    }
   };
 
   return BanksGeo;
