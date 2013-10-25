@@ -129,7 +129,7 @@ class BanksGeo
 	#@method: processMapOptions
 	#Set center and zoom and run Map initialize
 	processMapOptions: (result) ->
-		if result.data?
+		if result? and result.data?
 			data = result.data
 			@_center = [parseFloat(data.latitude, 10), parseFloat(data.longitude, 10)]
 			@_zoom = parseInt(data.zoom, 10)

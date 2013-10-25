@@ -126,7 +126,7 @@ BanksGeo = (function() {
 
   BanksGeo.prototype.processMapOptions = function(result) {
     var data;
-    if (result.data != null) {
+    if ((result != null) && (result.data != null)) {
       data = result.data;
       this._center = [parseFloat(data.latitude, 10), parseFloat(data.longitude, 10)];
       this._zoom = parseInt(data.zoom, 10);
