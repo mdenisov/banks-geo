@@ -2,6 +2,7 @@
 
 A small fast library for Yandex maps.
 
+* Demo page [http://mdenisov.github.io/banks-geo/](http://mdenisov.github.io/banks-geo/)
 * Source: [https://github.com/mdenisov/banks-geo](https://github.com/mdenisov/banks-geo)
 
 ## Quick start
