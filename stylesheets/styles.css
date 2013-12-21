@@ -820,6 +820,42 @@ section #title .credits.right {
   float: right;
 }
 
+
+
+.map {
+  width: 100%;
+  height: 400px;
+}
+.map__point {
+  background-image: url('../images/placemark-icons.png');
+  background-repeat: no-repeat;
+  height: 49px;
+  width: 40px;
+  margin: -49px 0 0 -20px;
+}
+.map__point--office,
+.map__point--branch {
+  background-position: left -49px;
+}
+.map__point--atm {
+  background-position: left 0;
+}
+.map__point img {
+  display: block;
+  zoom: 1;
+  background: #ffffff;
+  border: 1px solid #ffffff;
+  max-width: 16px;
+  width: 16px;
+  height: 16px;
+  position: absolute;
+  left: 7px;
+  top: 5px;
+  outline: none;
+  margin: -48px 0 0 -20px;
+}
+
+
 @media print, screen and (max-width: 720px) {
   #title .credits {
     display: block;
